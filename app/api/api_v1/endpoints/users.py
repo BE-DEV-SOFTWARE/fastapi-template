@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import List
 
 from fastapi import APIRouter, BackgroundTasks, Depends, status
 from pydantic.types import UUID4
@@ -13,14 +13,14 @@ from app.models.user import Role
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.User])
+@router.get("/")
 def read_users(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
     with_archived: bool = False,
     _: models.User = Depends(deps.require_role(Role.ADMIN)),
-) -> Any:
+) -> List[schemas.User]:
     """
     ADMIN: Retrieve users.
     """
@@ -28,7 +28,7 @@ def read_users(
     return users
 
 
-@router.post("/", response_model=schemas.User)
+@router.post("/")
 async def create_user(
     *,
     background_tasks: BackgroundTasks,
@@ -36,7 +36,7 @@ async def create_user(
     user_in: schemas.UserCreate,
     role: Role = Role.CUSTOMER,
     current_user: models.User = Depends(deps.require_role(Role.ADMIN)),
-) -> Any:
+) -> schemas.User:
     """
     ADMIN: Create new user.
     """
@@ -52,13 +52,13 @@ async def create_user(
     return user
 
 
-@router.put("/me", response_model=schemas.User)
+@router.put("/me")
 def update_user_me(
     *,
     db: Session = Depends(deps.get_db),
     user_in: schemas.UserUpdate,
     current_user: models.User = Depends(deps.get_current_user),
-) -> Any:
+) -> schemas.User:
     """
     Update current user.
     """
@@ -66,21 +66,21 @@ def update_user_me(
     return user
 
 
-@router.get("/me", response_model=schemas.User)
+@router.get("/me")
 def read_user_me(
     current_user: models.User = Depends(deps.get_current_user),
-) -> Any:
+) -> schemas.User:
     """
     Read current user.
     """
     return current_user
 
 
-@router.delete("/me/archive", response_model=schemas.User)
+@router.delete("/me/archive")
 def archive_user_me(
     db: Session = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_user),
-) -> Any:
+) -> schemas.User:
     """
     Archive the current user. Only admin users can unarchive users.
     """
@@ -88,13 +88,13 @@ def archive_user_me(
     return user
 
 
-@router.get("/{user_id}", response_model=schemas.User)
+@router.get("/{user_id}")
 def read_user(
     *,
     db: Session = Depends(deps.get_db),
     user_id: UUID4,
     current_user: models.User = Depends(deps.require_role(Role.ADMIN)),
-) -> Any:
+    ) -> schemas.User:
     """
     ADMIN: Read a specific user by id.
     """
@@ -108,14 +108,14 @@ def read_user(
     return user
 
 
-@router.put("/{user_id}", response_model=schemas.User)
+@router.put("/{user_id}")
 def update_user(
     *,
     db: Session = Depends(deps.get_db),
     user_id: UUID4,
     user_in: schemas.UserUpdate,
     current_user: models.User = Depends(deps.require_role(Role.ADMIN)),
-) -> Any:
+) -> schemas.User:
     """
     ADMIN: Update a user.
     """
@@ -126,13 +126,13 @@ def update_user(
     return user
 
 
-@router.delete("/{user_id}/archive", response_model=schemas.User)
+@router.delete("/{user_id}/archive")
 def archive_user(
     *,
     db: Session = Depends(deps.get_db),
     user_id: UUID4,
     current_user: models.User = Depends(deps.require_role(Role.ADMIN)),
-) -> Any:
+) -> schemas.User:
     """
     ADMIN: Archive a user.
     """
@@ -143,13 +143,13 @@ def archive_user(
     return user
 
 
-@router.put("/{user_id}/unarchive", response_model=schemas.User)
+@router.put("/{user_id}/unarchive")
 def unarchive_user(
     *,
     db: Session = Depends(deps.get_db),
     user_id: UUID4,
     current_user: models.User = Depends(deps.require_role(Role.ADMIN)),
-) -> Any:
+) -> schemas.User:
     """
     ADMIN: Unarchive a user.
     """
@@ -160,13 +160,13 @@ def unarchive_user(
     return user
 
 
-@router.delete("/{user_id}", response_model=schemas.User)
+@router.delete("/{user_id}")
 def delete_user(
     *,
     db: Session = Depends(deps.get_db),
     user_id: UUID4,
     current_user: models.User = Depends(deps.require_role(Role.ADMIN)),
-) -> Any:
+) -> schemas.User:
     """
     ADMIN: Permanently delete a user.
     """

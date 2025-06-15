@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from fastapi.encoders import jsonable_encoder
@@ -92,7 +92,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def archive(self, db: Session, obj: ModelType) -> ModelType:
         if issubclass(self.model, Archivable):
-            obj.archived_at = datetime.utcnow()
+            obj.archived_at = datetime.now(UTC)
             apply_changes(db, obj)
         return obj
 

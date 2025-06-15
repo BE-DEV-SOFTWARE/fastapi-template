@@ -1,16 +1,16 @@
 services:
   # Proxy service in charge or internal routing
   proxy:
-    image: "traefik:v3.2.3"
+    image: "traefik:v3.4.1"
     command:
-      - --entryPoints.traefik.transport.respondingTimeouts.readTimeout="${BACKEND_TIMEOUT}s? 120s}"
-      - --entryPoints.websecure.transport.respondingTimeouts.readTimeout="${BACKEND_TIMEOUT}s? 120s}"
-      - --providers.docker.httpClientTimeout="${BACKEND_TIMEOUT}s? 120s}"
+      - --entryPoints.traefik.transport.respondingTimeouts.readTimeout=${BACKEND_TIMEOUT:-120}s
+      - --entryPoints.websecure.transport.respondingTimeouts.readTimeout=${BACKEND_TIMEOUT:-120}s
+      - --providers.docker.httpClientTimeout=${BACKEND_TIMEOUT:-120}s
       - --log.level=DEBUG # Optional, helps in debugging
       - --api.insecure=true # Enable Traefik dashboard (accessible at :8080)
       - --providers.docker=true # Enable Docker provider
       - --providers.docker.exposedbydefault=false # Prevents exposing all services by default
-      - --entryPoints.websecure.address=:443" # Define the HTTPS entry point
+      - --entryPoints.websecure.address=:443 # Define the HTTPS entry point
       - --certificatesresolvers.myresolver.acme.tlschallenge=true # Enable TLS challenge for Let's Encrypt
       - "--certificatesresolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}" # Email for Let's Encrypt
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json" # Store cert data in a file

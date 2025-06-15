@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import List
 
 from fastapi import APIRouter, Depends
 from pydantic.types import UUID4
@@ -12,13 +12,13 @@ from app.models import Role
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.Item])
+@router.get("/")
 def read_items(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
     current_user: models.User = Depends(deps.get_current_user),
-) -> Any:
+) -> List[schemas.Item]:
     """
     Retrieve items of the current user. Admin users retrieves all items.
     """
@@ -32,13 +32,13 @@ def read_items(
     return items
 
 
-@router.post("/", response_model=schemas.Item)
+@router.post("/")
 def create_item(
     *,
     db: Session = Depends(deps.get_db),
     item_in: schemas.ItemCreate,
     current_user: models.User = Depends(deps.get_current_user),
-) -> Any:
+) -> schemas.Item:
     """
     Create new item. Admin cannot create an item for themselves. Use the dedicated admin endpoint instead.
     """
@@ -46,14 +46,14 @@ def create_item(
     return item
 
 
-@router.post("/admin", response_model=schemas.Item)
+@router.post("/admin")
 def create_item_admin(
     *,
     db: Session = Depends(deps.get_db),
     item_in: schemas.ItemCreate,
     current_user: models.User = Depends(deps.require_role(Role.ADMIN)),
     user_id: UUID4,
-) -> Any:
+) -> schemas.Item:
     """
     ADMIN: Create new item for another user.
     """
@@ -64,14 +64,14 @@ def create_item_admin(
     return item
 
 
-@router.put("/{id}", response_model=schemas.Item)
+@router.put("/{id}")
 def update_item(
     *,
     db: Session = Depends(deps.get_db),
     id: UUID4,
     item_in: schemas.ItemUpdate,
     current_user: models.User = Depends(deps.get_current_user),
-) -> Any:
+) -> schemas.Item:
     """
     Update an item.
     """
@@ -84,13 +84,13 @@ def update_item(
     return item
 
 
-@router.get("/{id}", response_model=schemas.Item)
+@router.get("/{id}")
 def read_item(
     *,
     db: Session = Depends(deps.get_db),
     id: UUID4,
     current_user: models.User = Depends(deps.get_current_user),
-) -> Any:
+) -> schemas.Item:
     """
     Get item by ID.
     """
@@ -102,13 +102,13 @@ def read_item(
     return item
 
 
-@router.delete("/{id}", response_model=schemas.Item)
+@router.delete("/{id}")
 def delete_item(
     *,
     db: Session = Depends(deps.get_db),
     id: UUID4,
     current_user: models.User = Depends(deps.get_current_user),
-) -> Any:
+) -> schemas.Item:
     """
     Delete an item.
     """

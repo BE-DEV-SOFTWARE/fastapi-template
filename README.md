@@ -84,6 +84,12 @@ uv sync
 
 That's it, ou are all set!
 
+>[!TIP]
+The current stack was already tested as is and we try to keep it up to date with the latest packages but if you want get all the latest and greatest of all the libraries you can simply run:
+```Bash
+uv sync --upgrade
+```
+
 If you are using VSCode you can simply open the root of the project using the `code` command:
 ```Bash
 code .

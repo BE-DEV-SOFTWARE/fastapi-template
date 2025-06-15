@@ -9,7 +9,7 @@ import jwt
 from pydantic import UUID4
 
 from app.core.config import settings
-from app.schemas.token import TokenContext, TokenPayload
+from app.schemas.auth import TokenContext, TokenPayload
 
 # Parameters for scrypt function
 # Those parameters can be adjusted based on target system's capabilities

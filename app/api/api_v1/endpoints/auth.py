@@ -17,12 +17,12 @@ from app.email_service.auth import send_reset_password_email
 router = APIRouter()
 
 
-@router.post("/register", response_model=schemas.AuthResponse)
+@router.post("/register")
 def register_email_user(
     *,
     db: Session = Depends(deps.get_db),
     user_in: schemas.UserCreate,
-) -> Any:
+) -> schemas.AuthResponse:
     """
     Register as new user to the application.
     """
@@ -62,20 +62,20 @@ async def sso_callback(
     return RedirectResponse(f"{sso.state}?token={token}")
 
 
-@router.post("/sso/confirm", response_model=schemas.AuthResponse)
+@router.post("/sso/confirm")
 def get_sso_access_token(
     user: models.User = Depends(deps.get_user_after_sso_confirmation),
-) -> Any:
+) -> schemas.AuthResponse:
     """
     The SSO authentication flow generate a token returned as a query parameters of the deep link redirection response of the callback endpoint. The auth/sso/confirm endpoint allows your client (mobile app, website, etc...) to get the authentication information of the user by trading the issued token for the actual authentication information of the user.
     """
     return create_login_response(user)
 
 
-@router.post("/login/access-token", response_model=schemas.AuthResponse)
-def login_access_token(
+@router.post("/login")
+def login(
     db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()
-) -> Any:
+) -> schemas.AuthResponse:
     """
     OAuth2 compatible token login, get an access token for future requests
     """
@@ -90,26 +90,26 @@ def login_access_token(
     return create_login_response(user)
 
 
-@router.post("/refresh", response_model=schemas.AuthResponse)
-def refresh_token(user: models.User = Depends(deps.get_user_from_refresh_token)) -> Any:
+@router.post("/refresh")
+def refresh_token(user: models.User = Depends(deps.get_user_from_refresh_token)) -> schemas.AuthResponse:
     """
     Refresh authentication information using a refresh token
     """
     return create_login_response(user)
 
 
-@router.post("/login/test-token", response_model=schemas.User)
-def test_token(current_user: models.User = Depends(deps.get_current_user)) -> Any:
+@router.post("/login/test-token")
+def test_token(current_user: models.User = Depends(deps.get_current_user)) -> schemas.User:
     """
     Test access token
     """
     return current_user
 
 
-@router.post("/password-recovery/{email}", response_model=schemas.Msg)
+@router.post("/password-recovery/{email}")
 def recover_password(
     background_tasks: BackgroundTasks, email: str, db: Session = Depends(deps.get_db)
-) -> Any:
+) -> schemas.Msg:
     """
     Password Recovery
     """
@@ -130,12 +130,12 @@ def recover_password(
     return {"msg": "Password recovery email sent"}
 
 
-@router.post("/reset-password/", response_model=schemas.Msg)
+@router.post("/reset-password/")
 def reset_password(
     token: str = Body(...),
     new_password: str = Body(...),
     db: Session = Depends(deps.get_db),
-) -> Any:
+) -> schemas.Msg:
     """
     Reset password
     """

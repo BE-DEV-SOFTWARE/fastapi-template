@@ -198,7 +198,7 @@ Depending on your server configuration you may need to assign the ip address man
 docker swarm init --advertise-addr <YOUR_IP_ADDRESS>
 ````
 
-(Optional) Create a directory to store Let’s Encrypt certificates:
+Create a directory to store Let’s Encrypt certificates:
 ````
 mkdir ./letsencrypt
 chmod 600 ./letsencrypt
@@ -264,4 +264,9 @@ docker volume rm $(docker volume ls -q)
 Optionally you can also remove all the unused docker data with, this will not affect any running containers:
 ````
 docker system prune
+````
+
+If you want to also remove all the unused volumes you can use:
+````
+docker system prune --volumes
 ````
