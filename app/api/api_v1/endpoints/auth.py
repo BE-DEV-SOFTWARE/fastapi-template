@@ -6,6 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_sso.sso.base import SSOBase
 from fastapi_sso.sso.google import OpenID
 from sqlalchemy.orm import Session
+from datetime import datetime, timedelta, UTC
 
 from app import crud, models, schemas
 from app.api import deps
@@ -13,6 +14,7 @@ from app.api.exceptions import HTTPException
 from app.core import security
 from app.core.security import get_password_hash
 from app.email_service.auth import send_reset_password_email
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -158,9 +160,13 @@ def reset_password(
 
 
 def create_login_response(user: models.User) -> schemas.AuthResponse:
+    access_token_expiration_date = datetime.now(UTC) + timedelta(seconds=settings.ACCESS_TOKEN_EXPIRES_SECONDS)
+    refresh_token_expiration_date = datetime.now(UTC) + timedelta(seconds=settings.REFRESH_TOKEN_EXPIRES_SECONDS)
     return schemas.AuthResponse(
         access_token=security.create_access_token(user.id),
         refresh_token=security.create_refresh_token(user.id),
+        access_token_expiration_date=access_token_expiration_date,
+        refresh_token_expiration_date=refresh_token_expiration_date,
         token_type="bearer",
         user=user,
     )

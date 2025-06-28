@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .user import User
 
@@ -16,6 +16,12 @@ class TokenContext(str, Enum):
 class AuthResponse(BaseModel):
     access_token: str
     refresh_token: str
+    access_token_expiration_date: datetime = Field(
+        description="The date and time when the access token expires in UTC"
+    )
+    refresh_token_expiration_date: datetime = Field(
+        description="The date and time when the refresh token expires in UTC"
+    )
     token_type: str
     user: User
 

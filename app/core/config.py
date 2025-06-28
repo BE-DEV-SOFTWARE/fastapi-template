@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # By default: 60 seconds * 60 minutes * 24 hours * 1 days = 1 days
     ACCESS_TOKEN_EXPIRES_SECONDS: int = 60 * 60 * 24 * 1
-    # By default: 60 seconds * 60 minutes * 24 hours * 365 days = 1 year
+    # By default: 60 seconds * 60 minutes * 24 hours * 8 days = 8 days
     REFRESH_TOKEN_EXPIRES_SECONDS: int = 60 * 60 * 24 * 8
     # By default: 30 seconds
     SSO_CONFIRMATION_TOKEN_EXPIRES_SECONDS: int = 30
@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = "app"
     SQLALCHEMY_DATABASE_URI: str = ""
+    POSTGRES_URL: Optional[str] = None
     SMTP_TLS: bool = False
     SMTP_SSL: bool = True
     SMTP_PORT: Optional[int] = None
@@ -114,6 +115,9 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def set_db_url(self) -> "Settings":
+        if self.POSTGRES_URL is not None:
+            self.SQLALCHEMY_DATABASE_URI = self.POSTGRES_URL
+            return self
         user = self.POSTGRES_USER
         password = self.POSTGRES_PASSWORD
         server = self.POSTGRES_SERVER

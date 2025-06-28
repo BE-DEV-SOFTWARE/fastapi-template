@@ -206,7 +206,7 @@ Here you will find all the features that are planned to be progressively added i
 
 ### ⛔️ Warning about scalability
 
-This template is optimized for deployment on a single VPS or server, providing an easy-to-use solution for small to mid-size projects. The `docker-compose.prod.yml` file offers a comprehensive development setup (including DB, file storage, pgAdmin, etc.) that works well for testing or small-scale deployments. However, it is not optimized for Kubernetes or large-scale production environments out of the box. While it remains production-ready and ideal for simple, manageable structures, it may not scale efficiently for larger or more complex systems.
+This template is optimized for deployment on a single VPS or server, providing an easy-to-use solution for small to mid-size projects. The `docker-compose.prod.yml` file offers a comprehensive development setup (including DB, file storage, pgAdmin, etc.) that works well for testing or small-scale deployments. However, it is not optimized for Kubernetes or large-scale production environments out of the box. While it remains production-ready and ideal for simple, manageable structures, it is not designed to scale efficiently for larger or more complex systems.
 
 ### License and commercial use
 
@@ -214,4 +214,4 @@ This template is Open-Sourced under the MIT license. This basically means that a
 
 If you have questions or encounter any difficulty while using this repo do not hesitate to use the GitHub Discussions channel.
 
-If you need help on your project or look for a commercial collaboration please reach out to my team by email [contact@bereyziat.dev](mailto:contact@bereyziat.dev) or check my [website: bereyziat.dev](https://bereyziat.dev)
+If you need help on your project or look for a commercial collaboration please reach out to me by email [jonathan@be-dev.ch](mailto:jonathan@be-dev.ch) or check [the BE-DEV team website: be-dev.ch](https://be-dev.ch)
