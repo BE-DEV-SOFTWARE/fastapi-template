@@ -9,33 +9,38 @@ app = FastAPI(
 )
 
 # Set all CORS enabled origins
-if settings.BACKEND_CORS_ORIGINS:
-    if settings.TAG == EnvTag.PROD:
+if settings.TAG == EnvTag.PROD:
+    if settings.BACKEND_CORS_ORIGINS:
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+            allow_origins=[
+                str(origin)
+                for origin in settings.BACKEND_CORS_ORIGINS
+            ],
             allow_credentials=True,
             allow_methods=["*"],
             allow_headers=["*"],
         )
-    elif settings.TAG == EnvTag.STAG:
-        # CORS set for a frontend app in staging environment deployed on any Vercel Preview - Modify this accordingly to match the pattern of your preview environment or more strictly to match the url of your staging deployment. Mobile apps do not need any specific CORS settings to be able to call the backend
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origin_regex="https://.*\.vercel\.app",  # noqa
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
-    elif settings.TAG == EnvTag.DEV:
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
-    else:
-        raise Exception(f"Provided TAG: {settings.TAG} is not supported")
+elif settings.TAG == EnvTag.STAG:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        # allow_origin_regex=r"https://.*\.yourdomain.com", 
+        # Remove allow_origins and add regex check if you want enable cors 
+        # on preview URL for example (Vercel, or Coolify deployment for example)
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+elif settings.TAG == EnvTag.DEV:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    raise Exception(f"Provided tag: {settings.TAG} is not supported")
 
 app.include_router(api_router, prefix=settings.API_V1_STR)

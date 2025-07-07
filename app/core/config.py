@@ -29,7 +29,6 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRES_SECONDS: int = 60 * 60 * 24 * 8
     # By default: 30 seconds
     SSO_CONFIRMATION_TOKEN_EXPIRES_SECONDS: int = 30
-    SERVER_NAME: str
     SERVER_HOST: AnyHttpUrl
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     # e.g: '["http://localhost", "http://localhost:4200", ...]'

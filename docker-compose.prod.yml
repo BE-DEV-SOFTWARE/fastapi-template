@@ -39,7 +39,6 @@ services:
     volumes: 
       - app-file-storage:/app/app/files # Uncomment to persist files (recommended to use an S3 bucket instead for production)
     environment:
-      - SERVER_NAME=${DOMAIN?Variable not set}
       - SERVER_HOST=https://${DOMAIN?Variable not set}
     labels:
       - "traefik.enable=true"

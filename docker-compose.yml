@@ -32,7 +32,6 @@ services:
       - app-file-storage:/app/files
     environment:
       - TAG=${TAG-dev}
-      - SERVER_NAME=${DOMAIN?Variable not set}
       - SERVER_HOST=http://${DOMAIN?Variable not set}
     ports:
       - 80:80
