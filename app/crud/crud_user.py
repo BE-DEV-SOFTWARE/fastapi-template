@@ -1,15 +1,19 @@
 from typing import Optional
 
 from fastapi.encoders import jsonable_encoder
+from pydantic import EmailStr
 from pydantic.types import UUID4
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.security import (
     generate_sso_confirmation_code,
     get_password_hash,
     verify_password,
 )
 from app.crud.base import CRUDBase
+from app.crud.crud_one_time_password import one_time_password as crud_otp
+from app.exceptions.auth import InvalidTokenException
 from app.models import Provider, Role, User
 from app.schemas import UserCreate, UserUpdate
 
@@ -30,7 +34,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         *,
         sso_provider_id: str,
         provider: Provider,
-        with_archived: Optional[bool] = False
+        with_archived: Optional[bool] = False,
     ) -> Optional[User]:
         assert (
             provider != Provider.EMAIL
@@ -50,24 +54,19 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         password = obj_in_data.pop("password", None)
         sso_provider_id = obj_in_data.pop("sso_provider_id", None)
         provider: Provider = obj_in.provider
-        if provider == Provider.EMAIL:
-            assert (
-                password is not None
-            ), "Invalid arguments for an Email user, missing password in UserCreate"
-        else:
+        if provider != Provider.EMAIL:
             assert (
                 sso_provider_id is not None
             ), "Invalid arguments for an SSO user, missing sso_provider_id in UserCreate"
-
-        password_hash = (
-            get_password_hash(password) if provider == Provider.EMAIL else None
-        )
+        password_hash = None
+        if password is not None:
+            password_hash = get_password_hash(password)
 
         db_obj = User(
             **obj_in_data,
             role=role,
             password_hash=password_hash,
-            sso_provider_id=sso_provider_id
+            sso_provider_id=sso_provider_id,
         )  # type: ignore
 
         apply_changes(db, db_obj)
@@ -84,6 +83,39 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             return None
         if not verify_password(password, user.password_hash):
             return None
+        return user
+
+    def handle_persistent_otp(
+        self, db: Session, otp: str, email: EmailStr
+    ) -> Optional[User]:
+        if settings.IS_PRODUCTION:
+            return None
+        if otp != settings.PERSISTENT_OTP:
+            return None
+        user = self.get_by_email(db, email=email)
+        return user
+
+    def handle_apple_review_team_otp(self, otp) -> Optional[User]:
+        if otp.email != settings.APPLE_REVIEW_TEAM_EMAIL:
+            return None
+        return otp.user
+
+    def authenticate_with_otp(
+        self, db: Session, *, email: EmailStr, verification_code: str
+    ) -> User:
+        if user := self.handle_persistent_otp(db, verification_code, email):
+            return user
+        otp = crud_otp.get_valid_code(db=db, verification_code=verification_code)
+        if not otp:
+            raise InvalidTokenException()
+        if user := self.handle_apple_review_team_otp(otp):
+            return user
+        if otp.email != email:
+            raise InvalidTokenException()
+        user = otp.user
+        if not user:
+            raise InvalidTokenException()
+        crud_otp.remove(db=db, obj=otp)
         return user
 
     def get_by_sso_confirmation_code(

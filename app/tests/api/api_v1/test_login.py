@@ -11,7 +11,7 @@ def test_get_access_token(client: TestClient) -> None:
         "username": settings.FIRST_SUPERUSER,
         "password": settings.FIRST_SUPERUSER_PASSWORD,
     }
-    r = client.post(f"{settings.API_V1_STR}/auth/login/access-token", data=login_data)
+    r = client.post(f"{settings.API_V1_STR}/auth/login", data=login_data)
     tokens = r.json()
     assert r.status_code == status.HTTP_200_OK
     assert "access_token" in tokens

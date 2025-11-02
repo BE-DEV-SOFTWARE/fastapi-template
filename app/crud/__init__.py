@@ -1,5 +1,6 @@
 from .crud_file import file
 from .crud_item import item
+from .crud_one_time_password import one_time_password
 from .crud_user import user
 
 # For a new basic set of CRUD operations you could just do

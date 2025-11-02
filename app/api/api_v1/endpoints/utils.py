@@ -1,5 +1,3 @@
-from typing import Any
-
 from fastapi import APIRouter, Depends, status
 from pydantic.networks import EmailStr
 
@@ -12,12 +10,13 @@ router = APIRouter()
 
 
 @router.post(
-    "/test-email/", response_model=schemas.Msg, status_code=status.HTTP_201_CREATED
+    "/test-email/",
+    status_code=status.HTTP_201_CREATED,
 )
 def test_email(
     email_to: EmailStr,
     _: models.User = Depends(deps.require_role(Role.ADMIN)),
-) -> Any:
+) -> schemas.Msg:
     """
     Test emails.
     """

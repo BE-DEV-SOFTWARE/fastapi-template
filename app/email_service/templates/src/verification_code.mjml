@@ -1,11 +1,18 @@
 <mjml>
   <mj-head>
-    <mj-title>{{ project_name }} - Password Recovery</mj-title>
+    <mj-title>Verification code</mj-title>
     <mj-attributes>
       <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" />
       <mj-text font-size="24px" color="#6e6e73" line-height="150%" />
     </mj-attributes>
     <mj-style>
+      .passcode {
+        font-size: 48px !important;
+        font-weight: 400 !important;
+        letter-spacing: 0.05em !important;
+        color: #ED6C2D !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif !important;
+      }
       .divider-line {
         border-top: 1px solid #e5e5e7 !important;
         margin: 0 !important;
@@ -34,60 +41,27 @@
             font-weight="400"
             align="left"
           >
-            We received a request to recover the password for user {{ email }}
+            Here is your verification code:
           </mj-text>
           
+          <!-- Passcode -->
+          <mj-text 
+            css-class="passcode"
+            padding="0 0 40px 0"
+            align="left"
+          >
+            {{ verification_code }}
+          </mj-text>
+          
+          <!-- Instruction -->
           <mj-text 
             font-size="16px"
-            color="#6e6e73"
-            padding="0 0 30px 0"
-            font-weight="400"
-            align="left"
-          >
-            Reset your password by clicking the button below:
-          </mj-text>
-          
-          <mj-button 
-            background-color="#ED6C2D" 
-            color="#ffffff" 
-            href="{{ link }}" 
-            font-size="16px" 
-            font-weight="bold" 
-            border-radius="4px" 
-            padding="15px 30px"
-          >
-            Reset Password
-          </mj-button>
-          
-          <mj-text 
-            font-size="14px"
-            color="#6e6e73"
-            padding="30px 0 10px 0"
-            font-weight="400"
-            align="left"
-          >
-            Or open the following link:
-          </mj-text>
-          
-          <mj-text 
-            font-size="14px"
-            color="#6e6e73"
-            padding="0 0 30px 0"
-            font-weight="400"
-            align="left"
-          >
-            <a href="{{ link }}" style="color: #ED6C2D; text-decoration: underline;">{{ link }}</a>
-          </mj-text>
-          
-          <mj-text 
-            font-size="14px"
             color="#6e6e73"
             padding="0 0 50px 0"
             font-weight="400"
             align="left"
           >
-            The reset password link will expire in {{ valid_hours }} hours.<br/>
-            If you didn't request a password recovery you can disregard this email.
+            Use this code to log in to the app. This code is valid for {{ valid_minutes }} minutes.
           </mj-text>
         </mj-column>
       </mj-section>

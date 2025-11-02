@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from fastapi.encoders import jsonable_encoder
@@ -19,6 +19,7 @@ def apply_changes(db: Session, db_item: ModelType) -> None:
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
+
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def __init__(self, model: Type[ModelType]):
@@ -55,7 +56,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         *,
         skip: int = 0,
         limit: int = 100,
-        with_archived: bool = False
+        with_archived: bool = False,
     ) -> List[ModelType]:
         query = db.query(self.model)
         query = self.filter_archivable(query, with_archived)
@@ -72,7 +73,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db: Session,
         *,
         db_obj: ModelType,
-        obj_in: Union[UpdateSchemaType, Dict[str, Any]]
+        obj_in: Union[UpdateSchemaType, Dict[str, Any]],
     ) -> ModelType:
         obj_data = jsonable_encoder(db_obj)
         if isinstance(obj_in, dict):
@@ -92,7 +93,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def archive(self, db: Session, obj: ModelType) -> ModelType:
         if issubclass(self.model, Archivable):
-            obj.archived_at = datetime.utcnow()
+            obj.archived_at = datetime.now(UTC)
             apply_changes(db, obj)
         return obj
 

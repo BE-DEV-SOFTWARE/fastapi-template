@@ -1,10 +1,85 @@
 <mjml>
-  <mj-body background-color="#fff">
-    <mj-section>
+  <mj-head>
+    <mj-title>{{ project_name }} - Test Email</mj-title>
+    <mj-attributes>
+      <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" />
+      <mj-text font-size="24px" color="#6e6e73" line-height="150%" />
+    </mj-attributes>
+    <mj-style>
+      .divider-line {
+        border-top: 1px solid #e5e5e7 !important;
+        margin: 0 !important;
+      }
+    </mj-style>
+  </mj-head>
+  
+  <mj-body background-color="#EDEDED">
+    <!-- Top spacing to show grey background -->
+    <mj-section padding="60px 0 0 0">
       <mj-column>
-        <mj-divider border-color="#555"></mj-divider>
-        <mj-text font-size="20px" color="#555" font-family="helvetica">{{ project_name }}</mj-text>
-        <mj-text font-size="16px" color="#555">Test email for: {{ email }}</mj-text>
+        <mj-text></mj-text>
+      </mj-column>
+    </mj-section>
+    
+    <!-- White card container -->
+    <mj-wrapper background-color="#ffffff" padding="0">
+      <!-- Top padding inside white card -->
+      <mj-section padding="40px 30px 0 30px">
+        <mj-column>
+          <!-- Main message -->
+          <mj-text 
+            font-size="18px" 
+            color="#6e6e73"
+            padding="0 0 50px 0"
+            font-weight="400"
+            align="left"
+          >
+            Test email for: {{ email }}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      
+      <!-- Divider line -->
+      <mj-section padding="0 30px">
+        <mj-column>
+          <mj-divider 
+            border-color="#e5e5e7" 
+            border-width="1px"
+            padding="0"
+          />
+        </mj-column>
+      </mj-section>
+      
+      <!-- Footer inside card -->
+      <mj-section padding="25px 30px 40px 30px">
+        <mj-column width="50%">
+            <!-- Signature -->
+          <mj-text 
+            font-size="16px"
+            color="#6e6e73"
+            padding="0 0 30px 0"
+            font-style="italic"
+            align="left"
+          >
+            {{ signature }}
+          </mj-text>
+        </mj-column>
+        <mj-column width="50%">
+          <mj-text 
+            font-size="16px"
+            align="right"
+            font-weight="400"
+            padding="0"
+          >
+            <a href="{{ web_app_url }}" style="color: #6e6e73;">{{ project_name }}</a>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+    <!-- Bottom spacing to show grey background -->
+    <mj-section padding="60px 0">
+      <mj-column>
+        <mj-text></mj-text>
       </mj-column>
     </mj-section>
   </mj-body>

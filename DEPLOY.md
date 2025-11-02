@@ -73,6 +73,12 @@ ssh <username>@<server_ip_address>
 ````
 ### Setup SSH key authentification
 
+Login as your limited user:
+
+````
+su - <username>
+````
+
 Make a .ssh/ folder and create the authorized_keys file on the server in the user's home directory.
 ````
 mkdir .ssh
@@ -120,6 +126,19 @@ To do so you can run the following command:
 ```
 sudo passwd -d <your_user>
 ```
+
+### \[Recommanded\] Passwordless sudo actions
+If you use a server manager service or a Paas like coolify you can also setup a limited user but make sure to allow your user to run all sudo actions without a password like follows:
+You need to add the following lines **at the end** of the /etc/sudoers file:
+```
+<username> ALL=(ALL) NOPASSWD: ALL
+```
+Use this command to edit your file:
+````
+sudo visudo -f /etc/sudoers
+````
+
+Ready more on [Coolify documentation](https://coolify.io/docs/knowledge-base/server/non-root-user)
 
 ### Set up a firewall
 Install uncomplicated firewall or 'ufw'
@@ -198,7 +217,7 @@ Depending on your server configuration you may need to assign the ip address man
 docker swarm init --advertise-addr <YOUR_IP_ADDRESS>
 ````
 
-(Optional) Create a directory to store Let’s Encrypt certificates:
+Create a directory to store Let’s Encrypt certificates:
 ````
 mkdir ./letsencrypt
 chmod 600 ./letsencrypt
@@ -264,4 +283,9 @@ docker volume rm $(docker volume ls -q)
 Optionally you can also remove all the unused docker data with, this will not affect any running containers:
 ````
 docker system prune
+````
+
+If you want to also remove all the unused volumes you can use:
+````
+docker system prune --volumes
 ````

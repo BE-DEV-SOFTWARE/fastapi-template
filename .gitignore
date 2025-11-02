@@ -7,7 +7,10 @@ app.egg-info
 .coverage
 htmlcov
 files
+letsencrypt
 .env
 
 .DS_Store
 .pytest_cache
+backend-example
+backend-example-2
