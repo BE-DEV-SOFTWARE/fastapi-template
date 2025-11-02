@@ -1,16 +1,15 @@
 [project]
 name = "fastapi-template"
-version = "0.1.0"
+version = "0.2.0"
 description = "A template project to create an API with file management, user authentication and PostgreSQL database."
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [
-    "Jonathan Bereyziat <jonathan@bereyziat.dev>"
+    "Jonathan Bereyziat <jonathan@be-dev.ch>"
 ]
 
 dependencies = [
     "alembic>=1.14.0",
-    "emails>=0.6",
     "fastapi>=0.115.6",
     "gunicorn>=23.0.0",
     "pydantic-settings>=2.7.0",
