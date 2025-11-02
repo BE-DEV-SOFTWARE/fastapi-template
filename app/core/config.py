@@ -47,19 +47,15 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = "app"
     SQLALCHEMY_DATABASE_URI: str = ""
     POSTGRES_URL: Optional[str] = None
-    SMTP_TLS: bool = False
-    SMTP_SSL: bool = True
-    SMTP_PORT: Optional[int] = None
-    SMTP_HOST: Optional[str] = None
-    SMTP_USER: Optional[str] = None
-    SMTP_PASSWORD: Optional[str] = None
     EMAILS_FROM_EMAIL: Optional[EmailStr] = None
     EMAILS_FROM_NAME: Optional[str] = None
     WEB_APP_URL: Optional[str] = None
+    BREVO_API_KEY: Optional[str] = None
 
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
     VERIFICATION_CODE_EXPIRATION_MINUTES: int = 10
     EMAIL_TEMPLATES_DIR: str = "/app/app/email_service/templates/build"
+    ENABLE_EMAIL_SERVICE: bool = True
     EMAILS_ENABLED: bool = False
     PERSISTENT_OTP: str = "123456"
     APPLE_REVIEW_TEAM_EMAIL: EmailStr = "review@apple.com"
@@ -96,11 +92,11 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def set_email_service(self) -> "Settings":
-        if self.EMAILS_FROM_EMAIL is None:
-            self.EMAILS_FROM_EMAIL = self.PROJECT_NAME
+        if self.EMAILS_FROM_NAME is None:
+            self.EMAILS_FROM_NAME = self.PROJECT_NAME
         # Enable emails sending if all the information is provided.
         self.EMAILS_ENABLED = bool(
-            self.SMTP_HOST and self.SMTP_PORT and self.EMAILS_FROM_EMAIL
+            self.BREVO_API_KEY and self.EMAILS_FROM_EMAIL
         )
         return self
 

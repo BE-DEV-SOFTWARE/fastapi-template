@@ -3,13 +3,21 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict
 
-import emails
-from emails.template import JinjaTemplate
+from jinja2 import Template
+import brevo_python
+from brevo_python.rest import ApiException
 
 from app.core.config import settings
 
 # Email template directory path
 EMAIL_TEMPLATES_DIR = Path(settings.EMAIL_TEMPLATES_DIR)
+
+# Configure Brevo API (only if API key is provided)
+api_instance = None
+if settings.BREVO_API_KEY:
+    configuration = brevo_python.Configuration()
+    configuration.api_key['api-key'] = settings.BREVO_API_KEY
+    api_instance = brevo_python.TransactionalEmailsApi(brevo_python.ApiClient(configuration))
 
 
 class EmailTemplate(str, Enum):
@@ -35,22 +43,58 @@ def send_email(
     html_template: str = "",
     environment: Dict[str, Any] = {},
 ) -> None:
+    if not settings.ENABLE_EMAIL_SERVICE:
+        logging.info("Email service is disabled. Email not sent.")
+        return
+    
     if not settings.EMAILS_ENABLED:
         logging.warning("Email not sent, no provided configuration for email variables")
         return
-    message = emails.Message(
-        subject=JinjaTemplate(subject_template),
-        html=JinjaTemplate(html_template),
-        mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL),
+
+    project_name = settings.PROJECT_NAME
+    # Subject template may already include project name, so use it as is or add prefix
+    subject = subject_template if subject_template else project_name
+    signature = f"The {project_name} Team"
+    environment["signature"] = signature
+    environment["project_name"] = project_name
+    environment["web_app_url"] = settings.WEB_APP_URL or ""
+    # Render the HTML template with Jinja
+    template = Template(html_template)
+    rendered_html = template.render(**environment)
+
+    # Prepare Brevo email data
+    sender = {
+        "name": settings.EMAILS_FROM_NAME or project_name,
+        "email": settings.EMAILS_FROM_EMAIL,
+    }
+
+    to = [
+        {
+            "email": email_to,
+            "name": email_to,
+        }
+    ]
+
+    reply_to = {
+        "name": settings.EMAILS_FROM_NAME or project_name,
+        "email": settings.EMAILS_FROM_EMAIL,
+    }
+
+    if api_instance is None:
+        logging.error("Brevo API instance not initialized. Check BREVO_API_KEY configuration.")
+        return
+
+    send_smtp_email = brevo_python.SendSmtpEmail(
+        to=to,
+        reply_to=reply_to,
+        html_content=rendered_html,
+        sender=sender,
+        subject=subject
     )
-    smtp_options = {"host": settings.SMTP_HOST, "port": settings.SMTP_PORT}
-    if settings.SMTP_TLS:
-        smtp_options["tls"] = True
-    if settings.SMTP_SSL:
-        smtp_options["ssl"] = True
-    if settings.SMTP_USER:
-        smtp_options["user"] = settings.SMTP_USER
-    if settings.SMTP_PASSWORD:
-        smtp_options["password"] = settings.SMTP_PASSWORD
-    response = message.send(to=email_to, render=environment, smtp=smtp_options)
-    logging.info(f"send email result: {response}")
+
+    try:
+        # Send the transactional email
+        api_response = api_instance.send_transac_email(send_smtp_email)
+        logging.info(f"Brevo email sent successfully: {api_response}")
+    except ApiException as e:
+        logging.error(f"Exception when calling Brevo API: {e}")

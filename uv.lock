@@ -75,6 +75,18 @@ wheels = [
 ]
 
 [[package]]
+name = "brevo-python"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "certifi" },
+    { name = "python-dateutil" },
+    { name = "six" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a8/13/9c5fcc8be41af68273e3861e84eef48f655392b51d55a69f9c05a2fc9ba2/brevo_python-1.2.0.tar.gz", hash = "sha256:50d2a1aecfea81a0c162a43f78a7032b4917ba59f64fa0bee4758e45321c6d00", size = 445121 }
+
+[[package]]
 name = "cachetools"
 version = "6.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -295,6 +307,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "alembic" },
+    { name = "brevo-python" },
     { name = "emails" },
     { name = "fastapi" },
     { name = "fastapi-sso" },
@@ -327,6 +340,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "alembic", specifier = ">=1.14.0" },
+    { name = "brevo-python", specifier = ">=1.2.0" },
     { name = "emails", specifier = ">=0.6" },
     { name = "fastapi", specifier = ">=0.115.6" },
     { name = "fastapi-sso", specifier = ">=0.17.0" },

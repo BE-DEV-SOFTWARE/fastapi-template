@@ -220,7 +220,12 @@ For iOS app submissions, Apple's review team needs to test your app's authentica
 
 ## Emails
 
-This templates propose an emails configuration that relies on connecting to your SMTP server. For example you can easily connect your Gmail account with env variables or your custom domain email server. This is a good solution for personal project and staring project but it is highly encourage for scalability and security reasons to transition to a dedicated external service like Sendgrid or any valid alternatives for your production builds.
+This template uses an email forwarding service (Brevo) for sending transactional emails. For detailed documentation on email configuration, templates, and best practices, see [EMAIL.md](./EMAIL.md).
+
+**Quick Setup:**
+- Get a free Brevo account at [https://www.brevo.com/](https://www.brevo.com/) (300 emails/day free)
+- Add your API key and email configuration to `.env`
+- Email templates are built with [MJML](https://mjml.io/) for full design control
 
 ## File storage/management
 
@@ -231,8 +236,6 @@ This template implement local storage of files. This means that the files like p
 Here you will find all the features that are planned to be progressively added in the upcoming year. The template is actively maintained and will be upgraded to get all the latest upgrades from its main libraries. Contributions are warmly welcome so don't hesitate to use it and share it! 😊
 - **[⏳ In progress]** Add GitHub actions (run test, listing on push etc)
 - **[⏳ In progress]** S3 simplified connection
-- **[🔮 Planned]** Add a monitoring tool as part of the stack (Prometeus for metrics and Signal for instrumentation ?)
-- **[🔮 Planned]** Connection to an email service like SendGrid or Resend
 - **[💭 To be considered]** Update to utilize Async technology (for endpoints that can benefit from it) https://medium.com/@neverwalkaloner/fastapi-with-async-sqlalchemy-celery-and-websockets-1b40cd9528da#:~:text=Starting%20from%20version%201.4%20SQLAlchemy,let's%20start%20with%20database%20connection. https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html
 - **[💭 To be considered]** Migration to psycopg v3 could be considered in a future version of the template
 

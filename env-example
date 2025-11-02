@@ -19,13 +19,10 @@ SECRET_KEY=some-super-secret-key
 FIRST_SUPERUSER=admin@example.com
 FIRST_SUPERUSER_PASSWORD=Password1234
 # Uncomment those lines if you want to activate notification email in the project
-# SMTP_TLS=False
-# SMTP_SSL=True
-# SMTP_PORT=465
-# SMTP_HOST=example.com
-# SMTP_USER=admin@example.com
-# SMTP_PASSWORD=YOUR_EMAIL_PASSWORD
+# ENABLE_EMAIL_SERVICE=True  # Set to False to disable email service entirely (defaults to True)
 # EMAILS_FROM_EMAIL=admin@example.com
+# EMAILS_FROM_NAME=Your Project Name
+# BREVO_API_KEY=your-brevo-api-key-here
 
 # Postgres
 POSTGRES_SERVER=db

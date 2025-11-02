@@ -24,6 +24,7 @@ dependencies = [
     "fastapi-sso>=0.17.0",
     "pillow>=11.0.0",
     "psycopg2-binary>=2.9.10",
+    "brevo-python>=1.2.0",
 ]
 
 [dependency-groups]
