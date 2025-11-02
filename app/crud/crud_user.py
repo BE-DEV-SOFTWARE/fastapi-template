@@ -2,6 +2,7 @@ from typing import Optional
 
 from fastapi.encoders import jsonable_encoder
 from pydantic.types import UUID4
+from pydantic import EmailStr
 from sqlalchemy.orm import Session
 
 from app.core.security import (
@@ -9,9 +10,12 @@ from app.core.security import (
     get_password_hash,
     verify_password,
 )
+from app.core.config import settings
 from app.crud.base import CRUDBase
 from app.models import Provider, Role, User
 from app.schemas import UserCreate, UserUpdate
+from app.crud.crud_one_time_password import one_time_password as crud_otp
+from app.exceptions.auth import InvalidTokenException
 
 from .base import apply_changes
 
@@ -84,6 +88,35 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             return None
         if not verify_password(password, user.password_hash):
             return None
+        return user
+
+    def handle_persistent_otp(self, db: Session, otp: str, email: EmailStr) -> Optional[User]:
+        if settings.TAG == settings.EnvTag.PROD:
+            return None
+        if otp != settings.PERSISTENT_OTP:
+            return None
+        user = self.get_by_email(db, email=email)
+        return user
+
+    def handle_apple_review_team_otp(self, otp) -> Optional[User]:
+        if otp.email != settings.APPLE_REVIEW_TEAM_EMAIL:
+            return None
+        return otp.user
+
+    def authenticate_with_otp(self, db: Session, *, email: EmailStr, verification_code: str) -> User:
+        if user := self.handle_persistent_otp(db, verification_code, email):
+            return user
+        otp = crud_otp.get_valid_code(db=db, verification_code=verification_code)
+        if not otp:
+            raise InvalidTokenException()
+        if user := self.handle_apple_review_team_otp(otp):
+            return user
+        if otp.email != email:
+            raise InvalidTokenException()
+        user = otp.user
+        if not user:
+            raise InvalidTokenException()
+        crud_otp.remove(db=db, obj=otp)
         return user
 
     def get_by_sso_confirmation_code(

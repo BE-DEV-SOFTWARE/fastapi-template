@@ -16,6 +16,7 @@ class EmailTemplate(str, Enum):
     TEST = "test_email"
     NEW_ACCOUNT = "new_account"
     RESET_PASSWORD = "reset_password"
+    VERIFICATION_CODE = "verification_code"
 
     def filename(self) -> str:
         return f"{self.value}.html"

@@ -1,10 +1,11 @@
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Body, Depends, Request, status
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_sso.sso.base import SSOBase
 from fastapi_sso.sso.google import OpenID
+from pydantic import EmailStr
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, UTC
 
@@ -13,8 +14,9 @@ from app.api import deps
 from app.api.exceptions import HTTPException
 from app.core import security
 from app.core.security import get_password_hash
-from app.email_service.auth import send_reset_password_email
+from app.email_service.auth import send_reset_password_email, send_verification_code_email, send_new_account_email
 from app.core.config import settings
+from app.exceptions.auth import InvalidTokenException
 
 router = APIRouter()
 
@@ -35,6 +37,8 @@ def register_email_user(
             detail="The user with this username already exists in the system.",
         )
     user = crud.user.create(db, obj_in=user_in)
+    send_new_account_email(user.email)
+
     return create_login_response(user)
 
 
@@ -79,17 +83,24 @@ def login(
     db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()
 ) -> schemas.AuthResponse:
     """
-    OAuth2 compatible token login, get an access token for future requests
+    OAuth2 compatible token login, get an access token for future requests.
+    Supports both password and OTP authentication (use email as username and OTP as password).
     """
-    user = crud.user.authenticate(
-        db, email=form_data.username, password=form_data.password
-    )
-    if not user:
+    email = form_data.username
+    password_or_otp = form_data.password
+    
+    user = crud.user.authenticate(db, email=email, password=password_or_otp)
+    if user:
+        return create_login_response(user)
+    
+    try:
+        user = crud.user.authenticate_or_register_with_otp(db, email=email, verification_code=password_or_otp)
+        return create_login_response(user)
+    except InvalidTokenException:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Incorrect email, password, or OTP",
         )
-    return create_login_response(user)
 
 
 @router.post("/refresh")
@@ -100,7 +111,7 @@ def refresh_token(user: models.User = Depends(deps.get_user_from_refresh_token))
     return create_login_response(user)
 
 
-@router.post("/login/test-token")
+@router.post("/login/test-token", include_in_schema=(not settings.IS_PRODUCTION))
 def test_token(current_user: models.User = Depends(deps.get_current_user)) -> schemas.User:
     """
     Test access token
@@ -159,6 +170,85 @@ def reset_password(
     return {"msg": "Password updated successfully"}
 
 
+@router.post("/request-authentication-code")
+def request_otp(
+    otp_request: schemas.OTPRequest,
+    db: Session = Depends(deps.get_db),
+) -> schemas.Msg:
+    """
+    Request a verification code to login.
+    """
+    email = otp_request.email.lower()
+    if email == settings.APPLE_REVIEW_TEAM_EMAIL:
+        return {"msg": "Gracefully handled: Apple review team cannot request a verification code"}
+    
+    user = crud.user.get_by_email(db, email=email)
+    
+    otp = crud.one_time_password.create_for_email(
+        db=db, email=email, user_id=user.id if user else None
+    )
+    
+    if settings.EMAILS_ENABLED:
+        send_verification_code_email(
+            email=email,
+            verification_code=otp.code
+        )
+        return {
+            "msg": "If an account exists, an authentication code has been sent"
+        }
+    else:
+        return {
+            "msg": f"Development mode: Authentication code is {otp.code}"
+        }
+
+
+def authenticate_or_register_with_otp(
+    *,
+    db: Session,
+    email: EmailStr,
+    verification_code: str,
+    background_tasks: Optional[BackgroundTasks] = None,
+) -> schemas.AuthResponse:
+    try:
+        user = crud.user.authenticate_with_otp(db, email=email, code=code)
+        return create_login_response(user)
+    except InvalidTokenException:
+        user = crud.user.get_by_email(db, email=email)
+        if user is None:
+            new_user = schemas.UserCreate(email=email)
+            user = crud.user.create(db, obj_in=new_user)
+            if background_tasks is not None:
+                background_tasks.add_task(send_new_account_email, email=email)
+            return create_login_response(user)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired authentication code",
+            )
+
+
+@router.post("/otp/verify")
+def verify_otp(
+    verify_otp_request: schemas.VerifyOTPRequest,
+    db: Session = Depends(deps.get_db),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
+) -> schemas.AuthResponse:
+    """
+    Authenticate user with OTP code. If the user doesn't exist, they will be automatically registered.
+    This endpoint handles both login and registration seamlessly - if a user provides a valid OTP code
+    but doesn't have an account, a new account will be created automatically.
+    """
+    email = verify_otp_request.email.lower()
+    code = verify_otp_request.code
+    
+    return authenticate_or_register_with_otp(
+        db=db,
+        email=email,
+        code=code,
+        background_tasks=background_tasks,
+    )
+
+
 def create_login_response(user: models.User) -> schemas.AuthResponse:
     access_token_expiration_date = datetime.now(UTC) + timedelta(seconds=settings.ACCESS_TOKEN_EXPIRES_SECONDS)
     refresh_token_expiration_date = datetime.now(UTC) + timedelta(seconds=settings.REFRESH_TOKEN_EXPIRES_SECONDS)
@@ -170,6 +260,50 @@ def create_login_response(user: models.User) -> schemas.AuthResponse:
         token_type="bearer",
         user=user,
     )
+
+
+@router.post("/generate-apple-review-team-otp")
+def generate_apple_review_team_otp(
+    db: Session = Depends(deps.get_db),
+    _: models.User = Depends(deps.require_role(models.Role.ADMIN)),
+) -> schemas.OneTimePassword:
+    """
+    Generate a persistent OTP for Apple review team.
+    This endpoint is only available to admins.
+    The OTP will be valid for the Apple review team user and persist until explicitly deactivated.
+    """
+    apple_review_team_user = crud.user.get_by_email(
+        db, email=settings.APPLE_REVIEW_TEAM_EMAIL)
+    if apple_review_team_user is None:
+        user_in = schemas.UserCreate(
+            email=settings.APPLE_REVIEW_TEAM_EMAIL,
+        )
+        apple_review_team_user = crud.user.create(
+            db=db,
+            obj_in=user_in,
+            role=models.Role.CUSTOMER,
+        )
+    otp = crud.one_time_password.create_apple_review_team_otp(
+        db, apple_review_team_user)
+    return otp
+
+
+@router.delete("/delete-apple-review-team-otp")
+def delete_apple_review_team_otp(
+    db: Session = Depends(deps.get_db),
+    _: models.User = Depends(deps.require_role(models.Role.ADMIN)),
+) -> schemas.OneTimePassword:
+    """
+    Delete the current Apple review team OTP if any.
+    This endpoint is only available to admins. It is to be used when the Apple review team is done with their testing and we don't need the OTP anymore.
+    """
+    otp = crud.one_time_password.delete_apple_review_team_otp(db)
+    if otp is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No Apple review team OTP found"
+        )
+    return otp
 
 
 def create_sso_user(db: Session, provider: models.Provider, openid_user: OpenID) -> str:
@@ -195,6 +329,7 @@ def create_sso_user(db: Session, provider: models.Provider, openid_user: OpenID)
             last_name=openid_user.last_name,
         )
         user = crud.user.create(db, obj_in=user_in)
+        send_new_account_email(user.email)
     user = crud.user.update_sso_confirmation_code(db, user)
     token = security.create_sso_confirmation_token(user.sso_confirmation_code)
     return token

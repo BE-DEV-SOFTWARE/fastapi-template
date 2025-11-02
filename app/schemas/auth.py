@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 from .user import User
 
@@ -38,3 +38,12 @@ class TokenPayload(BaseModel):
     user_id: str
     sso_confirmation_code: Optional[str]
     random_value: str
+
+
+class OTPRequest(BaseModel):
+    email: EmailStr
+
+
+class VerifyOTPRequest(BaseModel):
+    code: str = Field(..., pattern=r"^\d{6}$")
+    email: EmailStr

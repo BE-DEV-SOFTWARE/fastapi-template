@@ -7,6 +7,7 @@ Using FastAPI and based on [fullstack example project of Tiangolo](https://githu
 Here is what you will be able to find out the box here:
 
 - 🚀 OAuth2.0: Authentication by JWT with access Token and refresh Token
+- 🔐 OTP Authentication: One-time password authentication via email
 - 🥸 SSO: pre-configured auth with Facebook, Github and Google
 - 📧 Email service: delegated email service using SMTP
 - 📜 MJML: email templating
@@ -183,6 +184,39 @@ alembic upgrade head
 
 >[!TIP]
 If you want to start your migration history from scratch, you can remove all the revision files (`.py` Python files) in `./alembic/versions/`. And then create an initial migration as described above.
+
+## Authentication
+
+This template supports multiple authentication methods:
+
+### Username/Password Authentication
+Traditional email and password authentication using secure password hashing.
+
+### OTP (One-Time Password) Authentication
+Users can request a verification code via email to log in without a password. The verification code is a 6-digit number that expires after 10 minutes (configurable via `VERIFICATION_CODE_EXPIRATION_MINUTES`).
+
+**Unified Login/Register Experience:**
+Based on extensive user testing and client feedback, the OTP authentication endpoint automatically handles both login and registration. When a user provides a valid verification code:
+- If the user exists: they are logged in
+- If the user doesn't exist: a new account is automatically created and they are logged in
+
+This creates a seamless experience similar to social media authentication (e.g., "Continue with Google"), where users don't need to choose between "Sign In" or "Sign Up". The frontend can still present separate Login and Register pages for user confidence and familiarity, but the backend gracefully handles both scenarios - missing accounts are created automatically, and existing accounts are logged in, regardless of which page the user started from.
+
+To customize this behavior, you can edit the `authenticate_or_register_with_otp` function in the auth endpoints.
+
+**Development Mode:**
+- If email service is not configured (`EMAILS_ENABLED=False`), the verification code is returned in the API response for easy development and testing.
+- You can inspect the verification code in the response using network inspection tools like Proxyman (for iOS apps) or browser DevTools Network panel (for web apps).
+- A persistent OTP is available in development/staging environments (default: `123456`, configurable via `PERSISTENT_OTP`). This allows quick login for testing but **cannot be used to register new users** since it doesn't hold any user data - it only works for existing users.
+
+### Apple Review Team OTP
+For iOS app submissions, Apple's review team needs to test your app's authentication. A special persistent OTP system is available for this purpose:
+- Admins can generate a persistent OTP via `/generate-apple-review-team-otp` endpoint
+- The OTP is valid for 15 days (configurable via `APPLE_REVIEW_TEAM_OTP_EXPIRATION_DAYS`)
+- The OTP works with the Apple review team user account (email: `review@apple.com` by default, configurable via `APPLE_REVIEW_TEAM_EMAIL`)
+- Apple reviewers can use any email ending with `@apple.com` with this OTP to authenticate
+- After review is complete, admins should delete the OTP via `/delete-apple-review-team-otp` endpoint for security
+- The Apple review team email cannot request regular verification codes through the standard endpoint
 
 ## Emails
 

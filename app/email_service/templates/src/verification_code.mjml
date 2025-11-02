@@ -1,0 +1,104 @@
+<mjml>
+  <mj-head>
+    <mj-title>Verification code</mj-title>
+    <mj-attributes>
+      <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" />
+      <mj-text font-size="24px" color="#6e6e73" line-height="150%" />
+    </mj-attributes>
+    <mj-style>
+      .passcode {
+        font-size: 48px !important;
+        font-weight: 400 !important;
+        letter-spacing: 0.05em !important;
+        color: #ED6C2D !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif !important;
+      }
+      .divider-line {
+        border-top: 1px solid #e5e5e7 !important;
+        margin: 0 !important;
+      }
+    </mj-style>
+  </mj-head>
+  
+  <mj-body background-color="#EDEDED">
+    <mj-section padding="60px 0 0 0">
+      <mj-column>
+        <mj-text></mj-text>
+      </mj-column>
+    </mj-section>
+    
+    <mj-wrapper background-color="#ffffff" padding="0">
+      <mj-section padding="40px 30px 0 30px">
+        <mj-column>
+          <mj-text 
+            font-size="18px" 
+            color="#6e6e73"
+            padding="0 0 30px 0"
+            font-weight="400"
+            align="left"
+          >
+            Here is your verification code:
+          </mj-text>
+          
+          <mj-text 
+            css-class="passcode"
+            padding="0 0 40px 0"
+            align="left"
+          >
+            {{ verification_code }}
+          </mj-text>
+          
+          <mj-text 
+            font-size="16px"
+            color="#6e6e73"
+            padding="0 0 50px 0"
+            font-weight="400"
+            align="left"
+          >
+            Use this code to log in to the app. This code is valid for {{ valid_minutes }} minutes.
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      
+      <mj-section padding="0 30px">
+        <mj-column>
+          <mj-divider 
+            border-color="#e5e5e7" 
+            border-width="1px"
+            padding="0"
+          />
+        </mj-column>
+      </mj-section>
+      
+      <mj-section padding="25px 30px 40px 30px">
+        <mj-column width="50%">
+          <mj-text 
+            font-size="16px"
+            color="#6e6e73"
+            padding="0 0 30px 0"
+            font-style="italic"
+            align="left"
+          >
+            {{ signature }}
+          </mj-text>
+        </mj-column>
+        <mj-column width="50%">
+          <mj-text 
+            font-size="16px"
+            align="right"
+            font-weight="400"
+            padding="0"
+          >
+            <a href="{{ web_app_url }}" style="color: #6e6e73;">{{ project_name }}</a>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+    <mj-section padding="60px 0">
+      <mj-column>
+        <mj-text></mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
+

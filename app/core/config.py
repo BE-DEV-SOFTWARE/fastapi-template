@@ -16,6 +16,7 @@ class EnvTag(str, Enum):
     DEV = "dev"
     STAG = "staging"
     PROD = "prod"
+    TEST = "test"
 
 
 class Settings(BaseSettings):
@@ -34,6 +35,10 @@ class Settings(BaseSettings):
     # e.g: '["http://localhost", "http://localhost:4200", ...]'
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
     TAG: EnvTag = EnvTag.DEV
+    IS_PRODUCTION: bool = False
+    IS_STAGING: bool = False
+    IS_DEV: bool = False
+    IS_TEST: bool = False
 
     PROJECT_NAME: str
     POSTGRES_SERVER: str = "db"
@@ -53,8 +58,12 @@ class Settings(BaseSettings):
     WEB_APP_URL: Optional[str] = None
 
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
+    VERIFICATION_CODE_EXPIRATION_MINUTES: int = 10
     EMAIL_TEMPLATES_DIR: str = "/app/app/email_service/templates/build"
     EMAILS_ENABLED: bool = False
+    PERSISTENT_OTP: str = "123456"
+    APPLE_REVIEW_TEAM_EMAIL: EmailStr = "review@apple.com"
+    APPLE_REVIEW_TEAM_OTP_EXPIRATION_DAYS: int = 15
 
     EMAIL_TEST_USER: EmailStr = "test@example.com"  # type: ignore
     FIRST_SUPERUSER: EmailStr
@@ -93,6 +102,14 @@ class Settings(BaseSettings):
         self.EMAILS_ENABLED = bool(
             self.SMTP_HOST and self.SMTP_PORT and self.EMAILS_FROM_EMAIL
         )
+        return self
+
+    @model_validator(mode="after")
+    def set_environment_flags(self) -> "Settings":
+        self.IS_PRODUCTION = self.TAG == EnvTag.PROD
+        self.IS_STAGING = self.TAG == EnvTag.STAG
+        self.IS_DEV = self.TAG == EnvTag.DEV
+        self.IS_TEST = self.TAG == EnvTag.TEST
         return self
 
     @model_validator(mode="after")

@@ -2,4 +2,4 @@
 # imported by Alembic
 from app.db.base_class import Base  # noqa
 
-from app.models import Item, User  # noqa # type: ignore # isort: skip
+from app.models import Item, OneTimePassword, User  # noqa # type: ignore # isort: skip
