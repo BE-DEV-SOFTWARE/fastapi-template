@@ -2,14 +2,14 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from app.api.api_v1.api import api_router
-from app.core.config import EnvTag, settings
+from app.core.config import settings
 
 app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
 # Set all CORS enabled origins
-if settings.TAG == EnvTag.PROD:
+if settings.IS_PRODUCTION:
     if settings.BACKEND_CORS_ORIGINS:
         app.add_middleware(
             CORSMiddleware,
@@ -21,7 +21,7 @@ if settings.TAG == EnvTag.PROD:
             allow_methods=["*"],
             allow_headers=["*"],
         )
-elif settings.TAG == EnvTag.STAG:
+elif settings.IS_STAGING:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -32,7 +32,7 @@ elif settings.TAG == EnvTag.STAG:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-elif settings.TAG == EnvTag.DEV:
+elif settings.IS_DEV:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

@@ -80,7 +80,9 @@ def get_sso_access_token(
 
 @router.post("/login")
 def login(
-    db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()
+    db: Session = Depends(deps.get_db), 
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
 ) -> schemas.AuthResponse:
     """
     OAuth2 compatible token login, get an access token for future requests.
@@ -94,8 +96,11 @@ def login(
         return create_login_response(user)
     
     try:
-        user = crud.user.authenticate_or_register_with_otp(db, email=email, verification_code=password_or_otp)
-        return create_login_response(user)
+        return authenticate_or_register_with_otp(
+            db=db, 
+            email=email, 
+            verification_code=password_or_otp,
+        )
     except InvalidTokenException:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -170,7 +175,7 @@ def reset_password(
     return {"msg": "Password updated successfully"}
 
 
-@router.post("/request-authentication-code")
+@router.post("/otp/request")
 def request_otp(
     otp_request: schemas.OTPRequest,
     db: Session = Depends(deps.get_db),
@@ -191,14 +196,14 @@ def request_otp(
     if settings.EMAILS_ENABLED:
         send_verification_code_email(
             email=email,
-            verification_code=otp.code
+            verification_code=otp.verification_code
         )
         return {
-            "msg": "If an account exists, an authentication code has been sent"
+            "msg": "If an account exists, a verification code has been sent"
         }
     else:
         return {
-            "msg": f"Development mode: Authentication code is {otp.code}"
+            "msg": f"Development mode: Your verification code is {otp.verification_code}"
         }
 
 
@@ -210,7 +215,11 @@ def authenticate_or_register_with_otp(
     background_tasks: Optional[BackgroundTasks] = None,
 ) -> schemas.AuthResponse:
     try:
-        user = crud.user.authenticate_with_otp(db, email=email, code=code)
+        user = crud.user.authenticate_with_otp(
+            db, 
+            email=email, 
+            verification_code=verification_code,
+        )
         return create_login_response(user)
     except InvalidTokenException:
         user = crud.user.get_by_email(db, email=email)
@@ -244,7 +253,7 @@ def verify_otp(
     return authenticate_or_register_with_otp(
         db=db,
         email=email,
-        code=code,
+        verification_code=code,
         background_tasks=background_tasks,
     )
 

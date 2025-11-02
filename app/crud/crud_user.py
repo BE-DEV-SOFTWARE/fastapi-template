@@ -4,6 +4,7 @@ from fastapi.encoders import jsonable_encoder
 from pydantic.types import UUID4
 from pydantic import EmailStr
 from sqlalchemy.orm import Session
+from app.core.config import settings
 
 from app.core.security import (
     generate_sso_confirmation_code,
@@ -54,18 +55,13 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         password = obj_in_data.pop("password", None)
         sso_provider_id = obj_in_data.pop("sso_provider_id", None)
         provider: Provider = obj_in.provider
-        if provider == Provider.EMAIL:
-            assert (
-                password is not None
-            ), "Invalid arguments for an Email user, missing password in UserCreate"
-        else:
+        if provider != Provider.EMAIL:
             assert (
                 sso_provider_id is not None
             ), "Invalid arguments for an SSO user, missing sso_provider_id in UserCreate"
-
-        password_hash = (
-            get_password_hash(password) if provider == Provider.EMAIL else None
-        )
+        password_hash = None
+        if password is not None:
+            password_hash = get_password_hash(password)
 
         db_obj = User(
             **obj_in_data,
@@ -91,7 +87,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         return user
 
     def handle_persistent_otp(self, db: Session, otp: str, email: EmailStr) -> Optional[User]:
-        if settings.TAG == settings.EnvTag.PROD:
+        if settings.IS_PRODUCTION:
             return None
         if otp != settings.PERSISTENT_OTP:
             return None

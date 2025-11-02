@@ -40,13 +40,13 @@ class CRUDOneTimePassword(CRUDBase[OneTimePassword, OneTimePasswordCreate, OneTi
         otp_in = OneTimePasswordCreate(email=email, user_id=user_id)
         db_obj = OneTimePassword(
             **otp_in.model_dump(),
-            code=self.generate_code(),
+            verification_code=self.generate_code(),
             expires_at=expires_at,
         )
         apply_changes(db, db_obj)
         return db_obj
 
-    def get_valid_otp(self, db: Session, *, verification_code: str) -> Optional[OneTimePassword]:
+    def get_valid_code(self, db: Session, *, verification_code: str) -> Optional[OneTimePassword]:
         otp = self.get_by_verification_code(db, verification_code=verification_code)
         return (
             otp
@@ -61,7 +61,7 @@ class CRUDOneTimePassword(CRUDBase[OneTimePassword, OneTimePasswordCreate, OneTi
         delta = timedelta(days=settings.APPLE_REVIEW_TEAM_OTP_EXPIRATION_DAYS)
         expires_at = now + delta
         db_obj = OneTimePassword(
-            code=self.generate_code(),
+            verification_code=self.generate_code(),
             user_id=user.id,
             email=user.email,
             expires_at=expires_at,
