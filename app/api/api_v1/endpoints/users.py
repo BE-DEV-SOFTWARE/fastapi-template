@@ -94,7 +94,7 @@ def read_user(
     db: Session = Depends(deps.get_db),
     user_id: UUID4,
     current_user: models.User = Depends(deps.require_role(Role.ADMIN)),
-    ) -> schemas.User:
+) -> schemas.User:
     """
     ADMIN: Read a specific user by id.
     """

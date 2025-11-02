@@ -3,9 +3,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict
 
-from jinja2 import Template
 import brevo_python
 from brevo_python.rest import ApiException
+from jinja2 import Template
 
 from app.core.config import settings
 
@@ -16,8 +16,10 @@ EMAIL_TEMPLATES_DIR = Path(settings.EMAIL_TEMPLATES_DIR)
 api_instance = None
 if settings.BREVO_API_KEY:
     configuration = brevo_python.Configuration()
-    configuration.api_key['api-key'] = settings.BREVO_API_KEY
-    api_instance = brevo_python.TransactionalEmailsApi(brevo_python.ApiClient(configuration))
+    configuration.api_key["api-key"] = settings.BREVO_API_KEY
+    api_instance = brevo_python.TransactionalEmailsApi(
+        brevo_python.ApiClient(configuration)
+    )
 
 
 class EmailTemplate(str, Enum):
@@ -46,7 +48,7 @@ def send_email(
     if not settings.ENABLE_EMAIL_SERVICE:
         logging.info("Email service is disabled. Email not sent.")
         return
-    
+
     if not settings.EMAILS_ENABLED:
         logging.warning("Email not sent, no provided configuration for email variables")
         return
@@ -81,7 +83,9 @@ def send_email(
     }
 
     if api_instance is None:
-        logging.error("Brevo API instance not initialized. Check BREVO_API_KEY configuration.")
+        logging.error(
+            "Brevo API instance not initialized. Check BREVO_API_KEY configuration."
+        )
         return
 
     send_smtp_email = brevo_python.SendSmtpEmail(
@@ -89,7 +93,7 @@ def send_email(
         reply_to=reply_to,
         html_content=rendered_html,
         sender=sender,
-        subject=subject
+        subject=subject,
     )
 
     try:

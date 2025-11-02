@@ -38,10 +38,7 @@ def send_new_account_email(email: str) -> None:
     )
 
 
-def send_verification_code_email(
-    email: str, 
-    verification_code: str
-) -> None:
+def send_verification_code_email(email: str, verification_code: str) -> None:
     subject = "Verification code"
     template_str = EmailTemplate.VERIFICATION_CODE.file()
     send_email(
@@ -53,5 +50,5 @@ def send_verification_code_email(
             "verification_code": verification_code,
             "valid_minutes": settings.VERIFICATION_CODE_EXPIRATION_MINUTES,
             "web_app_url": settings.WEB_APP_URL or "",
-        }
+        },
     )

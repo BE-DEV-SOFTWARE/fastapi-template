@@ -234,7 +234,6 @@ This template implement local storage of files. This means that the files like p
 # 🌟2025🌟 Roadmap:
 
 Here you will find all the features that are planned to be progressively added in the upcoming year. The template is actively maintained and will be upgraded to get all the latest upgrades from its main libraries. Contributions are warmly welcome so don't hesitate to use it and share it! 😊
-- **[⏳ In progress]** Add GitHub actions (run test, listing on push etc)
 - **[⏳ In progress]** S3 simplified connection
 - **[💭 To be considered]** Update to utilize Async technology (for endpoints that can benefit from it) https://medium.com/@neverwalkaloner/fastapi-with-async-sqlalchemy-celery-and-websockets-1b40cd9528da#:~:text=Starting%20from%20version%201.4%20SQLAlchemy,let's%20start%20with%20database%20connection. https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html
 - **[💭 To be considered]** Migration to psycopg v3 could be considered in a future version of the template

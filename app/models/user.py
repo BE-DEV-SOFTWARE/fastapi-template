@@ -1,9 +1,9 @@
 from enum import Enum
-from typing import TYPE_CHECKING, Literal, Optional, List
+from typing import TYPE_CHECKING, List, Literal, Optional
 
 from sqlalchemy import Boolean, String
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
 
@@ -62,7 +62,9 @@ class User(Base, Archivable):
     profile_pic: Mapped[Optional["File"]] = relationship(
         "File", backref="user", uselist=False, cascade="all, delete"
     )
-    items: Mapped[List["Item"]] = relationship("Item", backref="user", lazy="dynamic", cascade="all, delete")
+    items: Mapped[List["Item"]] = relationship(
+        "Item", backref="user", lazy="dynamic", cascade="all, delete"
+    )
 
     @hybrid_property
     def is_admin(self) -> bool:
@@ -75,7 +77,7 @@ class User(Base, Archivable):
     @hybrid_property
     def is_moderator(self) -> bool:
         return self.role == Role.MODERATOR
-    
+
     @is_moderator.expression
     def is_moderator(cls):
         return cls.role == Role.MODERATOR
@@ -91,7 +93,7 @@ class User(Base, Archivable):
     @hybrid_property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
-    
+
     @full_name.expression
     def full_name(cls):
         return cls.first_name + " " + cls.last_name

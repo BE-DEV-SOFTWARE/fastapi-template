@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional
+
 from pydantic import BaseModel, ConfigDict, EmailStr
 from pydantic.types import UUID4
 
@@ -27,5 +28,3 @@ class OneTimePasswordInDBBase(OneTimePasswordBase):
 
 class OneTimePassword(OneTimePasswordInDBBase):
     pass
-
-

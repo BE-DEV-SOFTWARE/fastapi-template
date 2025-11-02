@@ -3,7 +3,7 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, EmailStr
 from pydantic.types import UUID4
 
-from app.models.user import Provider, Role, DEFAULT_LANGUAGE, Language
+from app.models.user import DEFAULT_LANGUAGE, Language, Provider, Role
 from app.schemas.archivable import Archivable
 
 

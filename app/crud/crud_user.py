@@ -1,22 +1,21 @@
 from typing import Optional
 
 from fastapi.encoders import jsonable_encoder
-from pydantic.types import UUID4
 from pydantic import EmailStr
+from pydantic.types import UUID4
 from sqlalchemy.orm import Session
-from app.core.config import settings
 
+from app.core.config import settings
 from app.core.security import (
     generate_sso_confirmation_code,
     get_password_hash,
     verify_password,
 )
-from app.core.config import settings
 from app.crud.base import CRUDBase
-from app.models import Provider, Role, User
-from app.schemas import UserCreate, UserUpdate
 from app.crud.crud_one_time_password import one_time_password as crud_otp
 from app.exceptions.auth import InvalidTokenException
+from app.models import Provider, Role, User
+from app.schemas import UserCreate, UserUpdate
 
 from .base import apply_changes
 
@@ -35,7 +34,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         *,
         sso_provider_id: str,
         provider: Provider,
-        with_archived: Optional[bool] = False
+        with_archived: Optional[bool] = False,
     ) -> Optional[User]:
         assert (
             provider != Provider.EMAIL
@@ -67,7 +66,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             **obj_in_data,
             role=role,
             password_hash=password_hash,
-            sso_provider_id=sso_provider_id
+            sso_provider_id=sso_provider_id,
         )  # type: ignore
 
         apply_changes(db, db_obj)
@@ -86,7 +85,9 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             return None
         return user
 
-    def handle_persistent_otp(self, db: Session, otp: str, email: EmailStr) -> Optional[User]:
+    def handle_persistent_otp(
+        self, db: Session, otp: str, email: EmailStr
+    ) -> Optional[User]:
         if settings.IS_PRODUCTION:
             return None
         if otp != settings.PERSISTENT_OTP:
@@ -99,7 +100,9 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             return None
         return otp.user
 
-    def authenticate_with_otp(self, db: Session, *, email: EmailStr, verification_code: str) -> User:
+    def authenticate_with_otp(
+        self, db: Session, *, email: EmailStr, verification_code: str
+    ) -> User:
         if user := self.handle_persistent_otp(db, verification_code, email):
             return user
         otp = crud_otp.get_valid_code(db=db, verification_code=verification_code)

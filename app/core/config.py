@@ -95,9 +95,7 @@ class Settings(BaseSettings):
         if self.EMAILS_FROM_NAME is None:
             self.EMAILS_FROM_NAME = self.PROJECT_NAME
         # Enable emails sending if all the information is provided.
-        self.EMAILS_ENABLED = bool(
-            self.BREVO_API_KEY and self.EMAILS_FROM_EMAIL
-        )
+        self.EMAILS_ENABLED = bool(self.BREVO_API_KEY and self.EMAILS_FROM_EMAIL)
         return self
 
     @model_validator(mode="after")
